@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  arabic-ocr:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - FILE_CLEANER_AUTO_CLEANUP_ENABLED=true
+      - FILE_CLEANER_AUTO_CLEANUP_INTERVAL_HOURS=6
+      - FILE_CLEANER_UPLOADS_RETENTION_DAYS=1
+      - FILE_CLEANER_OUTPUT_RETENTION_DAYS=7
+      - FILE_CLEANER_TEMP_RETENTION_HOURS=2
+      - FILE_CLEANER_LOGS_RETENTION_DAYS=30
+    volumes:
+      - ./uploads:/app/uploads
+      - ./output:/app/output
+      - ./temp:/app/temp
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.arabic-ocr.rule=Host(`localhost`)"
+      - "traefik.http.services.arabic-ocr.loadbalancer.server.port=3000"
+
+  # Optional: Add nginx for production reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - arabic-ocr
+    restart: unless-stopped
+    profiles:
+      - production

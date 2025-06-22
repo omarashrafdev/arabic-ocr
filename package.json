@@ -1,0 +1,63 @@
+{
+  "name": "arabic-ocr-web-app",
+  "version": "1.0.0",
+  "description": "Web application for PDF OCR with Arabic language support",
+  "main": "server.js",
+  "bin": {
+    "pdf-to-images": "pdf-to-images.js"
+  },
+  "scripts": {
+    "start": "NODE_ENV=production node server.js",
+    "dev": "NODE_ENV=development nodemon server.js",
+    "cli:pdf-to-images": "node cli/pdf-to-images.js",
+    "cli:pdf-to-text": "node cli/pdf-to-text.js",
+    "cli:batch-processing": "node cli/batch-pdf-to-text.js",
+    "cli:ocr-images": "node cli/ocr-images.js",
+    "clean": "node cli/file-cleaner.js --verbose",
+    "clean:dry-run": "node cli/file-cleaner.js --dry-run --verbose",
+    "clean:uploads": "node cli/file-cleaner.js --uploads-retention 0 --verbose",
+    "clean:force": "rm -rf output/* temp/* uploads/* logs/*.log",
+    "disk-usage": "node cli/file-cleaner.js --report --verbose",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"Build completed\"",
+    "postinstall": "echo \"Installation completed\"",
+    "logs": "tail -f logs/app.log"
+  },
+  "keywords": [
+    "pdf",
+    "ocr",
+    "arabic",
+    "web-app",
+    "express",
+    "tesseract",
+    "production"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "pdf2pic": "^3.2.0",
+    "commander": "^14.0.0",
+    "tesseract.js": "^5.1.1",
+    "express": "^5.1.0",
+    "multer": "^2.0.1",
+    "docx": "^9.5.1",
+    "helmet": "^8.1.0",
+    "express-rate-limit": "^7.5.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/arabic-ocr-web-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/arabic-ocr-web-app/issues"
+  },
+  "homepage": "https://github.com/yourusername/arabic-ocr-web-app#readme"
+}

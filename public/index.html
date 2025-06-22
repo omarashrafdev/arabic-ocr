@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic PDF OCR - Extract Text from PDFs</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 32px;
+            width: 100%;
+            max-width: 672px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .accent-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .pdf-icon {
+            width: 40px;
+            height: 40px;
+            color: #ef4444;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .message.visible {
+            display: flex;
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border-left: 4px solid #f87171;
+            color: #991b1b;
+        }
+
+        .success-message {
+            background-color: #f0fdf4;
+            border-left: 4px solid #4ade80;
+            color: #166534;
+        }
+
+        .message-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .upload-area {
+            border: 3px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 48px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+
+        .upload-area:hover {
+            border-color: #6366f1;
+            background-color: #eef2ff;
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            color: #6366f1;
+            margin: 0 auto 16px;
+        }
+
+        .upload-text-large {
+            font-size: 20px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .upload-text-small {
+            color: #6b7280;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
+            background-color: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+            padding: 16px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .file-info.visible {
+            display: flex;
+        }
+
+        .file-info-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            color: white;
+            font-weight: 600;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .progress-container {
+            margin-top: 24px;
+            display: none;
+        }
+
+        .progress-container.visible {
+            display: block;
+        }
+
+        .progress-bar {
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            height: 12px;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            height: 12px;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .result-section {
+            margin-top: 32px;
+            background-color: #f9fafb;
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid #6366f1;
+            display: none;
+        }
+
+        .result-section.visible {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .result-header h3 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .success-icon {
+            width: 24px;
+            height: 24px;
+            color: #10b981;
+            margin-right: 8px;
+        }
+
+        .result-preview {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            max-height: 192px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+            white-space: pre-wrap;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 16px;
+            flex-direction: column;
+        }
+
+        .download-btn {
+            flex: 1;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .download-btn-txt {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .download-btn-txt:hover {
+            background-color: #059669;
+        }
+
+        .download-btn-docx {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .download-btn-docx:hover {
+            background-color: #2563eb;
+        }
+
+        .download-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (min-width: 640px) {
+            .download-buttons {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top accent bar -->
+        <div class="accent-bar"></div>
+        
+        <!-- Header -->
+        <header class="header">
+            <h1>
+                <!-- PDF Icon -->
+                <svg class="pdf-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                </svg>
+                Arabic PDF OCR
+            </h1>
+            <p>Extract Arabic text from PDF documents with high accuracy</p>
+        </header>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="message error-message">
+            <svg class="message-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+            <span id="errorText"></span>
+        </div>
+
+        <div id="successMessage" class="message success-message">
+            <svg class="message-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <span id="successText"></span>
+        </div>
+
+        <!-- Upload Form -->
+        <form id="uploadForm" class="form-container">
+            <!-- Upload Area -->
+            <div>
+                <div id="uploadArea" class="upload-area">
+                    <!-- Upload Icon -->
+                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <div class="upload-text-large">Click to upload or drag and drop</div>
+                    <div class="upload-text-small">PDF files only (Max 50MB)</div>
+                </div>
+                <input type="file" id="pdfFile" name="pdf" accept=".pdf" class="file-input">
+
+                <!-- File Info -->
+                <div id="fileInfo" class="file-info">
+                    <svg class="file-info-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div id="fileDetails"></div>
+                </div>
+            </div>
+
+            <!-- Language Selection -->
+            <div class="form-group">
+                <label for="language" class="form-label">OCR Language:</label>
+                <select id="language" name="language" class="form-select">
+                    <option value="ara">Arabic (العربية)</option>
+                    <option value="eng">English</option>
+                    <option value="ara+eng">Arabic + English</option>
+                    <option value="fra">French</option>
+                    <option value="deu">German</option>
+                    <option value="spa">Spanish</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="uploadBtn" class="submit-btn">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Extract Text
+            </button>
+        </form>
+
+        <!-- Progress Bar -->
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText" class="progress-text">Processing your PDF...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultSection" class="result-section">
+            <div class="result-header">
+                <svg class="success-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <h3>Text Extracted Successfully!</h3>
+            </div>
+            
+            <!-- Preview -->
+            <div id="resultPreview" class="result-preview"></div>
+            
+            <!-- Download Buttons -->
+            <div class="download-buttons">
+                <button id="downloadTxt" class="download-btn download-btn-txt">
+                    <svg class="download-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Download TXT
+                </button>
+                <button id="downloadDocx" class="download-btn download-btn-docx">
+                    <svg class="download-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Download DOCX
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('pdfFile');
+            const uploadForm = document.getElementById('uploadForm');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const resultSection = document.getElementById('resultSection');
+            const resultPreview = document.getElementById('resultPreview');
+            const downloadTxt = document.getElementById('downloadTxt');
+            const downloadDocx = document.getElementById('downloadDocx');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileDetails = document.getElementById('fileDetails');
+            const errorText = document.getElementById('errorText');
+            const successText = document.getElementById('successText');
+
+            let currentSessionId = null;
+
+        // Upload area click handler
+        uploadArea.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (fileInput) {
+                fileInput.click();
+            }
+        });
+
+        // File input change handler
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+
+        // Prevent default drag behaviors on document
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.addEventListener(eventName, preventDefaults, false);
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function handleDragOver(e) {
+            preventDefaults(e);
+            uploadArea.style.borderColor = '#6366f1';
+            uploadArea.style.backgroundColor = '#eef2ff';
+        }
+
+        function handleDragLeave(e) {
+            preventDefaults(e);
+            uploadArea.style.borderColor = '#d1d5db';
+            uploadArea.style.backgroundColor = '#f9fafb';
+        }
+
+        function handleDrop(e) {
+            preventDefaults(e);
+            uploadArea.style.borderColor = '#d1d5db';
+            uploadArea.style.backgroundColor = '#f9fafb';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                // Create a new FileList-like object
+                const dt = new DataTransfer();
+                dt.items.add(files[0]);
+                fileInput.files = dt.files;
+                handleFileSelect();
+            }
+        }
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (file.type !== 'application/pdf') {
+                showError('Please select a PDF file only.');
+                fileInput.value = '';
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) {
+                showError('File size must be less than 50MB.');
+                fileInput.value = '';
+                return;
+            }
+
+            // Show file info
+            fileDetails.innerHTML = `
+                <strong>Selected file:</strong> ${file.name}<br>
+                <strong>Size:</strong> ${formatFileSize(file.size)}
+            `;
+            fileInfo.classList.add('visible');
+            hideMessages();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('visible');
+            successMessage.classList.remove('visible');
+        }
+
+        function showSuccess(message) {
+            successText.textContent = message;
+            successMessage.classList.add('visible');
+            errorMessage.classList.remove('visible');
+        }
+
+        function hideMessages() {
+            errorMessage.classList.remove('visible');
+            successMessage.classList.remove('visible');
+        }
+
+        function showProgress() {
+            progressContainer.classList.add('visible');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = `
+                <svg class="btn-icon spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Processing...
+            `;
+
+            // Simulate progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 500);
+
+            return interval;
+        }
+
+        function hideProgress(interval) {
+            clearInterval(interval);
+            progressContainer.classList.remove('visible');
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = `
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Extract Text
+            `;
+        }
+
+        // Form submission
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showError('Please select a PDF file first.');
+                return;
+            }
+
+            hideMessages();
+            resultSection.classList.remove('visible');
+
+            const progressInterval = showProgress();
+
+            try {
+                const formData = new FormData();
+                formData.append('pdf', fileInput.files[0]);
+                formData.append('language', document.getElementById('language').value);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentSessionId = result.sessionId;
+                    resultPreview.textContent = result.preview;
+                    resultSection.classList.add('visible');
+                    showSuccess(`Successfully processed: ${result.originalFilename}`);
+
+                    // Complete progress
+                    progressFill.style.width = '100%';
+                    setTimeout(() => hideProgress(progressInterval), 500);
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                hideProgress(progressInterval);
+                showError(error.message || 'An error occurred while processing the PDF.');
+            }
+        });
+
+        // Download handlers
+        downloadTxt.addEventListener('click', () => {
+            if (currentSessionId) {
+                window.location.href = `/download/${currentSessionId}/txt`;
+            }
+        });
+
+        downloadDocx.addEventListener('click', () => {
+            if (currentSessionId) {
+                window.location.href = `/download/${currentSessionId}/docx`;
+            }
+        });
+        }); // Close DOMContentLoaded
+    </script>
+</body>
+</html>

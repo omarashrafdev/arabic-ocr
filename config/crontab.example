@@ -1,0 +1,20 @@
+# Arabic OCR File Cleaner Crontab Example
+# 
+# To install this crontab:
+# 1. Copy this file to crontab.conf
+# 2. Update the paths to match your installation
+# 3. Run: crontab config/crontab.conf
+#
+# Format: minute hour day month day-of-week command
+
+# Clean files every 6 hours (at 00:30, 06:30, 12:30, 18:30)
+30 */6 * * * cd /path/to/arabic-ocr && /usr/bin/node cli/file-cleaner.js >> logs/cleaner.log 2>&1
+
+# Daily cleanup at 2:00 AM with more aggressive settings
+0 2 * * * cd /path/to/arabic-ocr && /usr/bin/node cli/file-cleaner.js --uploads-retention 0 --temp-retention 1 --verbose >> logs/cleaner.log 2>&1
+
+# Weekly disk usage report (Sundays at 3:00 AM)
+0 3 * * 0 cd /path/to/arabic-ocr && /usr/bin/node cli/file-cleaner.js --report --verbose >> logs/cleaner.log 2>&1
+
+# Monthly log cleanup (1st of each month at 4:00 AM)
+0 4 1 * * cd /path/to/arabic-ocr && /usr/bin/node cli/file-cleaner.js --logs-retention 30 --verbose >> logs/cleaner.log 2>&1

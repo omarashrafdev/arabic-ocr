@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime directories
+uploads/*
+!uploads/.gitkeep
+temp/*
+!temp/.gitkeep
+output/*
+!output/.gitkeep
+logs/*
+!logs/.gitkeep
+batch_ocr_results/
+*_images/
+*_temp_images/
+
+# SSL certificates
+ssl/*
+!ssl/.gitkeep
+
+# Generated files
+*.txt
+*.docx
+!README.md
+!DEPLOYMENT.md
+!package*.json
+
+# Docker
+docker-compose.override.yml
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OCR training data (keep ara.traineddata)
+*.traineddata
+!ara.traineddata
+
+# Temporary files
+tmp/
+temp/ 
